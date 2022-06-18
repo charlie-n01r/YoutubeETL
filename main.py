@@ -1,87 +1,43 @@
-import os
-import pickle
 import json
-import google_auth_oauthlib.flow
-from googleapiclient import discovery
-from transform import clean_regions, clean_video_list, clean_channels
-
-scopes = ['https://www.googleapis.com/auth/youtube.force-ssl']
-api_service_name = 'youtube'
-api_version = 'v3'
-client_secrets_file = 'secrets.json'
-
-
-def get_channels(ids, yt):
-    request = yt.channels().list(
-        part="snippet,statistics",
-        id=ids
-    )
-    response = request.execute()
-
-    return response
-
-
-def get_videos(code, yt, data):
-    # Get the top 10 trending videos in Gaming in a given region
-    request = yt.videos().list(
-        part="snippet,statistics",
-        chart="mostPopular",
-        maxResults=10,
-        regionCode=code,
-        videoCategoryId="20"
-    )
-    response = request.execute()
-
-    # Clean and store the information of each video
-    video_list, channels = clean_video_list(response)
-    data[code] = video_list
-
-    return channels
-
-
-def get_regions(yt):
-    # Fetch all of YouTube's regions
-    request = yt.i18nRegions().list(
-        part="snippet"
-    )
-    response = request.execute()
-
-    return response
-
-
-def get_authenticated_service():
-    if os.path.exists('credentials'):
-        with open('credentials', 'rb') as f:
-            credentials = pickle.load(f)
-    else:
-        flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(client_secrets_file, scopes)
-        credentials = flow.run_console()
-        with open('credentials', 'wb') as f:
-            pickle.dump(credentials, f)
-    return discovery.build(api_service_name, api_version, credentials=credentials)
+from datetime import datetime
+from transform import clean_regions
+from extract import *
 
 
 if __name__ == '__main__':
     videoData = dict()
     channelList = set()
+    channels = dict()
 
     os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+    now = datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
     youtube = get_authenticated_service()
-    
-    raw_regions = get_regions(youtube)
-    regions = clean_regions(raw_regions)
-    test = list(regions.keys())[:2]
 
-    for region in test:
+    # Get and clean all the regions
+    regions = get_regions(youtube)
+    regions = clean_regions(regions)
+
+    # Fetch all the videos from each region and their information
+    # The get_videos function already performs the cleaning process
+    for region in regions.keys():
         regional_channels = get_videos(region, youtube, videoData)
         channelList |= regional_channels
 
+    # Save today's trending videos in a json file
+    today = {now: videoData}
     with open('videos.json', 'w', encoding='utf-8') as file:
-        json.dump(videoData, file, ensure_ascii=False, indent=2)
+        json.dump(today, file, ensure_ascii=False, indent=2)
 
-    channelIDs = ','.join(channelList)
-    raw_channels = get_channels(channelIDs, youtube)
-    channels = clean_channels(raw_channels)
+    # Convert the channel list set into a list of 50 sized batches
+    # This is done because the channel list supports a maximum of 50 results per query
+    channelList = [ list(channelList)[i:i + 50] for i in range(0, len(channelList), 50) ]
 
+    # Update the channels dictionary with the cleaned information of every batch
+    for batch in channelList:
+        channelIDs = ','.join(batch)
+        channels.update(get_channels(channelIDs, youtube))
+
+    # Save all the channels' information in a json file
+    today = {now: channels}
     with open('channels.json', 'w', encoding='utf-8') as file:
-        json.dump(channels, file, ensure_ascii=False, indent=2)
+        json.dump(today, file, ensure_ascii=False, indent=2)
