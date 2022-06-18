@@ -45,3 +45,17 @@ Some findings I'm hoping to achieve include but are not limited to:
 - etc.
 
 The experiment will be repeated in intervals of 1 month, 3 months, 6 months, 9 months and 12 months, to observe how the data changes over time and other interesting observations.
+
+## How to run
+Run the following commands to install the necessary packages:
+
+```shell
+pip install --upgrade google-api-python-client
+pip install --upgrade google-auth-oauthlib google-auth-httplib2
+```
+
+To run the entire application, use the following command:
+
+```shell
+python3 main.py
+```
