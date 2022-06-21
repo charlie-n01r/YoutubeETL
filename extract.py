@@ -25,19 +25,19 @@ def get_authenticated_service():
     return discovery.build(api_service_name, api_version, credentials=credentials)
 
 
-def get_channels(ids, yt):
+def get_channels(ids, yt, columns, date):
     # Get the statistics and other information from the channels whose video trended
     request = yt.channels().list(
         part="snippet,statistics",
         id=ids
     )
     response = request.execute()
-    channel_info = clean_channels(response)
+    channel_info = clean_channels(response, columns, date)
 
     return channel_info
 
 
-def get_videos(code, yt, data):
+def get_videos(code, yt, columns, now):
     # Get the top 10 trending videos in Gaming in a given region
     request = yt.videos().list(
         part="snippet,statistics",
@@ -49,10 +49,9 @@ def get_videos(code, yt, data):
     response = request.execute()
 
     # Clean and store the information of each video
-    video_list, channels = clean_video_list(response)
-    data[code] = video_list
+    videos, channels = clean_video_list(response, columns, now, code)
 
-    return channels
+    return videos, channels
 
 
 def get_regions(yt):

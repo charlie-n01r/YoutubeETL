@@ -1,77 +1,111 @@
-def get_items(data):
-    # Get only the snippet of the request's response
-    data = data['items']
-    cleaned = dict()
-
-    return data, cleaned
+import pandas as pd
 
 
 def clean_regions(data):
-    data, cleaned = get_items(data)
+    data = data['items']
+    cleaned = dict()
 
     # Create an entry in the dictionary using the region code as key and the name as its value
     for region in data:
         snippet = region['snippet']
         cleaned[snippet['gl']] = snippet['name']
 
+    # Return the data as a dataframe
+    cleaned = pd.DataFrame(cleaned.items(), columns=['regionCode', 'regionName'])
     return cleaned
 
 
-def clean_video_list(data):
-    data, video_list = get_items(data)
+def clean_video_list(data, columns, now, code):
+    # Initialize the lists where the clean data will be stored
+    keys = list()
+    titles = list()
+    published_date = list()
     channels = list()
+    view_count = list()
+    likes = list()
+    comments = list()
+    languages = list()
+    tag_list = list()
+    extraction_date = list()
+    trended_region = list()
 
+    data = data['items']
     for item in data:
         # For every video in the video list, create a new entry using the videoID as key
         key = item['id']
+        keys.append(key)
+
         snippet = item['snippet']
+        statistics = item['statistics']
 
         # Get the important information from the video's data
-        title = snippet['title']
-        published_date = snippet['publishedAt']
-        channel = snippet['channelId']
-        statistics = item['statistics']
-        del(statistics['favoriteCount'])
-        # Not all videos have tags or the audio language, so it's important to set the value of those who don't as null
-        language = snippet['defaultAudioLanguage'] if 'defaultAudioLanguage' in snippet.keys() else None
-        tags = snippet['tags'] if 'tags' in snippet.keys() else None
+        titles.append(snippet['title'])
+        published_date.append(snippet['publishedAt'])
+        channels.append(snippet['channelId'])
+        view_count.append(statistics['viewCount'])
 
-        # Save it and discard the rest
-        video_list[key] = {
-            'title': title,
-            'published_date': published_date,
-            'channel': channel,
-            'language': language,
-            'tags': tags,
-            'statistics': statistics
-        }
-        channels.append(channel)
+        # Not all videos contain all the data for privacy or other reasons, so those values will be set to None
+        language = snippet['defaultAudioLanguage'] if 'defaultAudioLanguage' in snippet.keys() else None
+        languages.append(language)
+
+        tags = snippet['tags'] if 'tags' in snippet.keys() else None
+        tag_list.append(tags)
+
+        like_count = statistics['likeCount'] if 'likeCount' in statistics.keys() else None
+        likes.append(like_count)
+
+        comment_count = statistics['commentCount'] if 'commentCount' in statistics.keys() else None
+        comments.append(comment_count)
+
+        extraction_date.append(now)
+        trended_region.append(code)
+
+    # Create a new dataframe using the value of each video as row, and each important feature as column
+    values = list(zip(keys, titles, published_date, channels, view_count, likes, comments, languages, tag_list,
+                      trended_region, extraction_date))
+    df = pd.DataFrame(values, columns=columns)
 
     # Return also the set of channels whose video trended
-    return video_list, set(channels)
+    return df, set(channels)
 
 
-def clean_channels(data):
-    data, channel_info = get_items(data)
+def clean_channels(data, columns, now):
+    # Initialize the lists where the clean data will be stored
+    keys = list()
+    name = list()
+    creation_date = list()
+    countries = list()
+    view_count = list()
+    subs = list()
+    video_count = list()
+    extraction_date = list()
 
+    data = data['items']
     for channel in data:
         # For every channel in the list, create a new entry using its ID as key
         key = channel['id']
+        keys.append(key)
+
         snippet = channel['snippet']
+        statistics = channel['statistics']
 
         # Get the most important information from the channel
-        name = snippet['title']
-        creation_date = snippet['publishedAt']
+        name.append(snippet['title'])
+        creation_date.append(snippet['publishedAt'])
+
         country = snippet['country'] if 'country' in snippet.keys() else None
-        statistics = channel['statistics']
-        del(statistics['hiddenSubscriberCount'])
+        countries.append(country)
 
-        # Save it and discard the rest
-        channel_info[key] = {
-            'name': name,
-            'creation_date': creation_date,
-            'country': country,
-            'statistics': statistics
-        }
+        view_count.append(statistics['viewCount'])
 
-    return channel_info
+        sub = statistics['subscriberCount'] if 'subscriberCount' in statistics.keys() else None
+        subs.append(sub)
+
+        video_count.append(statistics['videoCount'])
+        extraction_date.append(now)
+
+    # Create a new dataframe with the clean data
+    values = list(zip(keys, name, creation_date, countries, view_count, subs, video_count, extraction_date))
+    df = pd.DataFrame(values, columns=columns)
+
+    return df

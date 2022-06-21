@@ -34,7 +34,16 @@ For the purposes of this project, the information that is considered relevant or
   - Video count
 
 ## Load phase
-Once cleaned up, the data will be uploaded to Firestore, where it will be stored as documents. The regions will be fixed, since they rarely change, but the videos and channels will be constantly updated.
+Once cleaned up and stored in various dataframes, the data will be stored in a SQLite database. The regions' information will only be loaded once, but the rest of the information will be loaded in the database daily.
+In total there will be 3 tables:
+- Regions
+- Videos
+- Channels
+
+These tables will have relationships referencing one another in order to make the querying process easy, and the data modeling as correct as possible.
+
+## Automation
+Airflow will be used to automatically run the pipeline daily, so that the data can be always be up to date.
 
 ## Future analysis
 Some findings I'm hoping to achieve include but are not limited to:
@@ -52,6 +61,7 @@ Run the following commands to install the necessary packages:
 ```shell
 pip install --upgrade google-api-python-client
 pip install --upgrade google-auth-oauthlib google-auth-httplib2
+pip install sqlalchemy
 ```
 
 To run the entire application, use the following command:
