@@ -19,14 +19,13 @@ def clean_video_list(data, columns, now, code):
     # Initialize the lists where the clean data will be stored
     keys = list()
     titles = list()
-    published_date = list()
+    published = list()
     channels = list()
-    view_count = list()
+    views = list()
     likes = list()
     comments = list()
     languages = list()
-    tag_list = list()
-    extraction_date = list()
+    extraction = list()
     trended_region = list()
 
     data = data['items']
@@ -40,16 +39,13 @@ def clean_video_list(data, columns, now, code):
 
         # Get the important information from the video's data
         titles.append(snippet['title'])
-        published_date.append(snippet['publishedAt'])
+        published.append(snippet['publishedAt'])
         channels.append(snippet['channelId'])
-        view_count.append(statistics['viewCount'])
+        views.append(statistics['viewCount'])
 
         # Not all videos contain all the data for privacy or other reasons, so those values will be set to None
         language = snippet['defaultAudioLanguage'] if 'defaultAudioLanguage' in snippet.keys() else None
         languages.append(language)
-
-        tags = snippet['tags'] if 'tags' in snippet.keys() else None
-        tag_list.append(tags)
 
         like_count = statistics['likeCount'] if 'likeCount' in statistics.keys() else None
         likes.append(like_count)
@@ -57,12 +53,11 @@ def clean_video_list(data, columns, now, code):
         comment_count = statistics['commentCount'] if 'commentCount' in statistics.keys() else None
         comments.append(comment_count)
 
-        extraction_date.append(now)
+        extraction.append(now)
         trended_region.append(code)
 
     # Create a new dataframe using the value of each video as row, and each important feature as column
-    values = list(zip(keys, titles, published_date, channels, view_count, likes, comments, languages, tag_list,
-                      trended_region, extraction_date))
+    values = list(zip(keys, titles, published, channels, views, likes, comments, languages, trended_region, extraction))
     df = pd.DataFrame(values, columns=columns)
 
     # Return also the set of channels whose video trended
@@ -75,10 +70,10 @@ def clean_channels(data, columns, now):
     name = list()
     creation_date = list()
     countries = list()
-    view_count = list()
+    views = list()
     subs = list()
     video_count = list()
-    extraction_date = list()
+    extraction = list()
 
     data = data['items']
     for channel in data:
@@ -96,16 +91,16 @@ def clean_channels(data, columns, now):
         country = snippet['country'] if 'country' in snippet.keys() else None
         countries.append(country)
 
-        view_count.append(statistics['viewCount'])
+        views.append(statistics['viewCount'])
 
         sub = statistics['subscriberCount'] if 'subscriberCount' in statistics.keys() else None
         subs.append(sub)
 
         video_count.append(statistics['videoCount'])
-        extraction_date.append(now)
+        extraction.append(now)
 
     # Create a new dataframe with the clean data
-    values = list(zip(keys, name, creation_date, countries, view_count, subs, video_count, extraction_date))
+    values = list(zip(keys, name, creation_date, countries, views, subs, video_count, extraction))
     df = pd.DataFrame(values, columns=columns)
 
     return df

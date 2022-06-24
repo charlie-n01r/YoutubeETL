@@ -23,7 +23,7 @@ For the purposes of this project, the information that is considered relevant or
   - View count
   - Like count
   - Comment count
-  - And, if available, the video's tags and the audio's language
+  - And, if available, the language of the video's audio
 - For every _unique_ channel whose video trended in _one or multiple regions_:
   - The channel's ID
   - Name of the channel
@@ -43,7 +43,7 @@ In total there will be 3 tables:
 These tables will have relationships referencing one another in order to make the querying process easy, and the data modeling as correct as possible.
 
 ## Automation
-Airflow will be used to automatically run the pipeline daily, so that the data can be always be up to date.
+Airflow will be used to automatically run the pipeline daily, so that the data can be always be up-to-date.
 
 ## Future analysis
 Some findings I'm hoping to achieve include but are not limited to:
@@ -61,7 +61,6 @@ Run the following commands to install the necessary packages:
 ```shell
 pip install --upgrade google-api-python-client
 pip install --upgrade google-auth-oauthlib google-auth-httplib2
-pip install sqlalchemy
 ```
 
 To run the entire application, use the following command:

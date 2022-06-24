@@ -27,7 +27,7 @@ def extract_channels(channel_list, yt, date):
 def extract_videos(codes, yt, date):
     # Prepare the dataframe where the videos' data will be stored
     columns = ['videoId', 'videoTitle', 'publishedDate', 'channelId', 'viewCount', 'likeCount', 'commentCount',
-               'language', 'tags', 'trendedRegion', 'extractionDate']
+               'language', 'trendedRegion', 'extractionDate']
 
     videos = pd.DataFrame(columns=columns)
     channel_list = set()
@@ -57,7 +57,8 @@ if __name__ == '__main__':
 
     # Perform the extraction process
     regions = extract_regions(youtube)
-    videoData, channelList = extract_videos(regions['RegionCode'], youtube, now)
+    videoData, channelList = extract_videos(regions['regionCode'], youtube, now)
     channels = extract_channels(channelList, youtube, now)
 
-    load(regions, videoData, channels)
+    # Perform the load phase
+    load(regions, videoData, channels, now)
