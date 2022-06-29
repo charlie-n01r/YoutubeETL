@@ -1,6 +1,6 @@
 # YouTube ETL Project
 
-The purpose of this project is to create an ETL pipeline, automated with Airflow.
+The purpose of this project is to create an ETL pipeline using Python.
 
 ## Extraction phase
 The information is extracted from YouTube using its API. The data in question is the Top 10 videos that appeared in the **Trending** page in the category of _Gaming_ in each country/region on YouTube. To obtain as much useful information for future analysis as possible, the following information is queried using the API:
@@ -41,9 +41,6 @@ In total there will be 3 tables:
 - Channels
 
 These tables will have relationships referencing one another in order to make the querying process easy, and the data modeling as correct as possible.
-
-## Automation
-Airflow will be used to automatically run the pipeline daily, so that the data can be always be up-to-date.
 
 ## Future analysis
 Some findings I'm hoping to achieve include but are not limited to:

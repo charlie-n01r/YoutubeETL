@@ -96,6 +96,18 @@ def load(regions, videos, channels, now):
     # Initialize the database connection and cursor
     conn, cursor = initialize()
 
+    # Prevent data duplication in the database
+    query = '''
+        select extractionDate from Dates order by extractionDate desc limit 1
+    '''
+    try:
+        last_date = cursor.execute(query).fetchone()[0]
+        if now == last_date:
+            print('Error! Program already ran today!')
+            quit()
+    except sqlite3.OperationalError:
+        pass
+
     # Convert all the dataframes into records (list of tuples that represent each row)
     regions = regions.to_records(index=False)
     videos = videos.to_records(index=False)
@@ -104,3 +116,4 @@ def load(regions, videos, channels, now):
     # Create the tables and insert  the values into them
     create_tables(conn, cursor, regions)
     insert_records(conn, cursor, videos, channels, now)
+    print('Successfully stored the data!')

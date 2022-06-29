@@ -50,15 +50,22 @@ def extract_regions(yt):
     return cleaned
 
 
-if __name__ == '__main__':
+def main():
     os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
-    now = datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
+    now = datetime.now().date()
+    today = now.strftime('%Y-%m-%dT%H:%M:%SZ')
     youtube = get_authenticated_service()
 
     # Perform the extraction process
-    regions = extract_regions(youtube)
-    videoData, channelList = extract_videos(regions['regionCode'], youtube, now)
-    channels = extract_channels(channelList, youtube, now)
+    # Since the regions never change, they are stored in a csv to avoid making an unnecessary call to the API
+    if os.path.exists('regions.csv'):
+        regions = pd.read_csv('regions.csv')
+    else:
+        regions = extract_regions(youtube)
+        regions.to_csv('regions.csv', index=False)
+
+    video_data, channel_list = extract_videos(regions['regionCode'], youtube, today)
+    channels = extract_channels(channel_list, youtube, today)
 
     # Perform the load phase
-    load(regions, videoData, channels, now)
+    load(regions, video_data, channels, today)
